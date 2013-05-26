@@ -1,0 +1,207 @@
+\documentclass[11pt,twoside,a4paper]{article}
+\usepackage{animate}
+\usepackage[onlyps]{altfont}
+\usepackage{CJK}
+\usepackage{graphicx}
+\usepackage[top=1in,bottom=1in,left=1.25in,right=1.25in]{geometry}
+\usepackage[colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=green]{hyperref}
+\newcommand{\ud}{\mathrm{d}}
+\begin{CJK}{UTF8}{gbsn}
+	\author{杨梓鑫\ \ 10级物理弘毅班}
+	\title{第七次计算物理作业}
+	\date{学号：2010301020023}
+	\begin{document}
+	\maketitle
+\section{Problem}
+$*\mathbf{4.16.}$ Carry out a truw three-body simulation in which the motions of Earth, Jupiter, and the Sun are all calculated. Since all three bodies are now in motion, it is useful to take the center of mass of the three-body system as the origin, rather than the position of Sun. We also suggest that you give Sun an initial velocity which makes the total momentum of the system exactly zero (so that the center of mass will remain fixed). Study the motion of Earth with different initial conditions. Also, try increasing the mass of Jupiter to 10, 100, and 1000 times its true mass.\\
+
+
+\section{Mechanical Analysis}
+The three-body system is quite resemble to the two-body one, so the pure result is:
+\begin{eqnarray*}
+\frac{\ud ^2x_E}{\ud t^2} &=& \frac{F_{G,x_E}}{M_p} = -\frac{GM_S\left(x_E-x_S\right)}{r_{ES}^3}-\frac{GM_J\left(x_E-x_J\right)}{r_{EJ}^3}\\	
+\frac{\ud ^2y_E}{\ud t^2} &=& \frac{F_{G,y_E}}{M_p} = -\frac{GM_S\left(y_E-y_S\right)}{r_{ES}^3}-\frac{GM_J\left(y_E-y_J\right)}{r_{EJ}^3}\\	
+\frac{\ud ^2x_J}{\ud t^2} &=& \frac{F_{G,x_J}}{M_p} = -\frac{GM_S\left(x_J-x_S\right)}{r_{JS}^3}-\frac{GM_E\left(x_J-x_E\right)}{r_{EJ}^3}\\	
+\frac{\ud ^2y_J}{\ud t^2} &=& \frac{F_{G,y_J}}{M_p} = -\frac{GM_S\left(y_J-y_S\right)}{r_{JS}^3}-\frac{GM_E\left(y_J-y_E\right)}{r_{EJ}^3}\\	
+\frac{\ud ^2x_S}{\ud t^2} &=& \frac{F_{G,x_S}}{M_p} = -\frac{GM_J\left(x_S-x_J\right)}{r_{JS}^3}-\frac{GM_E\left(x_S-x_E\right)}{r_{ES}^3}\\	
+\frac{\ud ^2y_S}{\ud t^2} &=& \frac{F_{G,y_S}}{M_p} = -\frac{GM_J\left(y_S-y_J\right)}{r_{JS}^3}-\frac{GM_E\left(y_S-y_E\right)}{r_{ES}^3}\\	
+\end{eqnarray*}
+And we will still use AU system and set $GM_S =4\pi^2$ AU$^3/$yr$^2$. Since the mass of the Sun is $2.0\times 10^30$ kg, which if the Earth and Jupiter are $6.0\times 10^{24}$ kg and $1.9\times 10^{27}$ kg respectively, 
+\begin{eqnarray*}
+GM_J = GM_S\times\frac{M_J}{M_S}=4\pi^2\times\frac{1.9\times 10^{27}}{2.0\times 10^{30}}=4\pi^2\cdot0.95 \times 10^{-3}\mathrm{ AU}^3/\mathrm{yr^2}\\
+GM_E = GM_S\times\frac{M_E}{M_S}=4\pi^2\times\frac{6.0\times 10^{24}}{2.0\times 10^{30}}=4\pi^2\cdot   3 \times 10^{-6}\mathrm{ AU}^3/\mathrm{yr^2}\\
+\end{eqnarray*}
+
+Therefore, applying the Euler-Cromer method on this problem, we get the algorithm like:\\
+$\bullet$ Calculate the distance among Earth, Jupiter, and the Sun:
+\begin{eqnarray*}
+	r_{ES}(i) &=& \sqrt{\left[x_E(i)-x_S(i)\right]^2+\left[y_E(i)-y_S(i)\right]^2}\\
+	r_{JS}(i) &=& \sqrt{\left[x_J(i)-x_S(i)\right]^2+\left[y_J(i)-y_S(i)\right]^2}\\
+	r_{EJ}(i) &=& \sqrt{\left[x_E(i)-x_J(i)\right]^2+\left[y_E(i)-y_J(i)\right]^2}\\
+\end{eqnarray*}
+$\bullet$ Compute the new velocity of Earth and Jupiter:
+\begin{eqnarray*}
+	v_{E,x}(i+1) &=& v_{E,x}(i)-\frac{4\pi^2\left(x_{E}(i)-x_{S}(i)\right)}{r_{ES}(i)^3}\Delta t-\frac{4\pi^2\left(M_J/M_S\right)\left[x_{E}(i)-x_{J}(i)\right]}{r_{EJ}(i)^3}\\
+	v_{E,y}(i+1) &=& v_{E,y}(i)-\frac{4\pi^2\left(y_{E}(i)-y_{S}(i)\right)}{r_{ES}(i)^3}\Delta t-\frac{4\pi^2\left(M_J/M_S\right)\left[y_{E}(i)-y_{J}(i)\right]}{r_{EJ}(i)^3}\\
+	v_{J,x}(i+1) &=& v_{J,x}(i)-\frac{4\pi^2\left(x_{J}(i)-x_{S}(i)\right)}{r_{JS}(i)^3}\Delta t-\frac{4\pi^2\left(M_J/M_S\right)\left[x_{J}(i)-x_{E}(i)\right]}{r_{EJ}(i)^3}\\
+	v_{J,y}(i+1) &=& v_{J,y}(i)-\frac{4\pi^2\left(y_{J}(i)-y_{S}(i)\right)}{r_{JS}(i)^3}\Delta t-\frac{4\pi^2\left(M_J/M_S\right)\left[y_{J}(i)-y_{E}(i)\right]}{r_{EJ}(i)^3}\\
+\end{eqnarray*}
+where $\Delta t$ is stiil $0.002$ yr.\\
+$\bullet$ Observe in a still frame of the center of the mass, the total momentum vanishes gives that:
+\begin{eqnarray*}
+v_{S,x}(i+1) &=& -\frac{M_J}{M_S}v_{J,x}(i) -\frac{M_E}{M_S}v_{E,x}(i)\\
+v_{S,y}(i+1) &=& -\frac{M_J}{M_S}v_{J,y}(i) -\frac{M_E}{M_S}v_{E,y}(i)\\
+\end{eqnarray*}
+
+$\bullet$ Use the Euler-Cromwe method to calculate the new positions of Earth, Jupiter and the Sun:
+\begin{eqnarray*}
+	x_{E}(i+1) &=& x_{E}(i)+v_{E,x}(i+1)\Delta t\\
+	y_{E}(i+1) &=& y_{E}(i)+v_{E,y}(i+1)\Delta t\\
+	x_{J}(i+1) &=& x_{J}(i)+v_{J,x}(i+1)\Delta t\\
+	y_{J}(i+1) &=& y_{J}(i)+v_{J,y}(i+1)\Delta t\\
+	x_{S}(i+1) &=& x_{S}(i)+v_{S,x}(i+1)\Delta t\\
+	y_{S}(i+1) &=& y_{S}(i)+v_{S,y}(i+1)\Delta t\\
+\end{eqnarray*}
+$\bullet$ Plot the positions as they become available.\\
+$\bullet$ Repeat for desired number of time steps.\\\\\\
+
+\newpage
+
+\section{Chaotic Earth}
+In order to show the randomness of the three-body system, I tried a lot of different initial conditions, some of which flew apart immediately, and some seemed to be random but with enough time the Earth still got back(Figure \ref{fig1}). However, with some particular initial condition, the motion of the Earth can be very manic, but in the end it will still fly straight out of the sight when the velocity of the Earth is large enough as the escaping velocity(Figure \ref{marker}). Thus, that the earth escapes or not depends on the initial velocity of the Jupiter and the Earth because even though the momentum is zero in the frame of the center of the mass but the kinetic energy is not. 
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.35]{/home/alexandra/CP_Hw/Chap4_2/ju=pi.pdf}
+\includegraphics[scale=0.35]{/home/alexandra/CP_Hw/Chap4_2/ju=pi*06.pdf}
+\caption{Initial Condition: location $(1.5,0)_\mathrm{E}$, $(-2.7,0)_\mathrm{J}$,    velocity $(0,2\pi)_\mathrm{E}$, $(0,\pi)_\mathrm{J}$ for left and $(0,0.6\pi)_\mathrm{J}$ for the right}
+\label{fig1}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.8]{/home/alexandra/CP_Hw/Chap4_2/ju=pi*04.pdf}
+\caption{Initial Condition: location $(1.5,0)_\mathrm{E}$, $(-2.7,0)_\mathrm{J}$,    velocity $(0,2\pi)_\mathrm{E}$, $(0,0.4\pi)_\mathrm{J}$}
+\label{marker}
+\end{figure}
+
+\section{The Mass of Jupiter}
+\quad As the textbook has already investigated, the authentic mass of Jupiter does not affect the orbit of the Earth much. However, we shall see how the increase of mass of Jupiter changes the orbit of the Earth gradually. In the real solar system the trajectory of the Earth in Figure \ref{fig3} is not a complete ellipse because it is in a frame of the center of the mass where the Sun is moving too.\\ 
+\quad Moving to Figure \ref{fig4} we can see that at the beginning the orbit of the earth is quite stable. With the rapid increase of the mass of Jupiter, however, thing's got a little crazy that there is no pattern of the evolution of the earth orbit. Sometimes it goes straight, other time it runs several rounds before it goes straight, which matches the unpredictable randomness of the three-body system.
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.6]{/home/alexandra/CP_Hw/Chap4_2/realju.pdf}
+\caption{Initial Condition: location $(1.5,0)_\mathrm{E}$, $(-2.7,0)_\mathrm{J}$,    velocity $(0,\pi)_\mathrm{E}$, $(0,1.2\pi)_\mathrm{J}$}
+\label{fig3}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia00.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia01.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia02.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia03.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia04.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia05.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia06.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia07.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia08.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia09.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia10.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia11.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia12.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia13.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia14.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia15.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia16.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia17.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia18.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia19.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia20.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia21.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia22.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia23.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia24.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia25.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia26.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia27.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia28.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia29.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia30.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia31.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia32.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia33.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia34.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia35.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia36.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia37.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia38.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia39.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia40.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia41.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia42.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia43.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia44.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia45.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia46.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia47.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia48.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia49.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia50.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia51.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia52.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia53.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia54.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia55.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia56.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia57.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia58.jpeg}
+\includegraphics[width=2.5cm]{/home/alexandra/CP_Hw/Chap4_2/BasicSJE/baia59.jpeg}
+
+\caption{The ratio of mass of the Jupiter with the real one increase exponentially from $10^0$ to $10^3$.}
+\label{fig4}
+\end{figure}
+
+
+\section{Three-Body}
+What if the mass of the Earth and of the Jupiter were comparable to the mass of the Sun? How random and chaotic would that be! Therefore I set $M_J/M_S$ and $M_E/M_S$ both equate to 1, so that the system becomes to a set of motions of three indentical sphere under the gravitational interaction. Through adjusting the initial condition, complex random or not so random pictures are made below.
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.61]{/home/alexandra/CP_Hw/Chap4_2/sym@1.pdf}
+\caption{Initial Condition: location $(1,0)_\mathrm{E}$, $(-1,0)_\mathrm{J}$,    velocity $(0,\pi)_\mathrm{E}$, $(0,-\pi)_\mathrm{J}$, a symmetry position that makes the Sun holds still at the origin.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.61]{/home/alexandra/CP_Hw/Chap4_2/diagsym@1.pdf}
+\caption{Initial Condition: location $(1,-1)_\mathrm{E}$, $(-1,1)_\mathrm{J}$,    velocity $(\pi,\pi)_\mathrm{E}$, $(-\pi,-\pi)_\mathrm{J}$, another symmetry position that makes the Sun holds still at the origin.}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.49]{/home/alexandra/CP_Hw/Chap4_2/equtriangle.pdf}
+\caption{Initial Condition: location $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$,    velocity $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$, an equilateral triangle of side length $2\sqrt{3}$ that the spheres and their velocities reside at the vertece.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.49]{/home/alexandra/CP_Hw/Chap4_2/equtriangleflipvel.pdf}
+\caption{Initial Condition: location $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$,    velocity $(-\sqrt{3},-1)_\mathrm{E}$, $(\sqrt{3},-1)_\mathrm{J}$, an equilateral triangle of side length $2\sqrt{3}$ that the spheres reside at the vertece but their velocies are flipped.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.49]{/home/alexandra/CP_Hw/Chap4_2/equtriangleupsidedownvel.pdf}
+\caption{Initial Condition: location $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$,    velocity $(\sqrt{3},1)_\mathrm{E}$, $(-\sqrt{3},1)_\mathrm{J}$, an equilateral triangle of side length $2\sqrt{3}$ that the spheres reside at the vertece but their velocies are upsidedown.}
+\end{figure}
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.8]{/home/alexandra/CP_Hw/Chap4_2/equtriangleturnvel.pdf}
+\caption{Initial Condition: location $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$,    velocity $(-1,\sqrt{3})_\mathrm{E}$, $(-1,-\sqrt{3})_\mathrm{J}$, an equilateral triangle of side length $2\sqrt{3}$ that the spheres reside at the vertece but their velocies are exchanged.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.8]{/home/alexandra/CP_Hw/Chap4_2/equtriangleupflvel.pdf}
+\caption{Initial Condition: location $(\sqrt{3},-1)_\mathrm{E}$, $(-\sqrt{3},-1)_\mathrm{J}$,    velocity $(-1,-\sqrt{3})_\mathrm{E}$, $(-1,\sqrt{3})_\mathrm{J}$, an equilateral triangle of side length $2\sqrt{3}$ that the spheres reside at the vertece but their velocies are exchanged and flipped.}
+\end{figure}
+\end{CJK}
+\end{document}
+
